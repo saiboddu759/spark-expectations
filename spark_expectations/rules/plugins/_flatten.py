@@ -1,9 +1,9 @@
 """Shared logic for converting rule definitions to flat row dicts,
 and helpers for building the standard rules DataFrame schema.
 
-The recommended input format uses ``dq_env`` to define per-environment
-settings (``table_name``, ``action_if_failed``, etc.) alongside a flat
-``rules`` list::
+The input format uses ``dq_env`` to define per-environment settings
+(``table_name``, ``action_if_failed``, etc.) alongside a flat ``rules``
+list::
 
     product_id: my_product
     dq_env:
@@ -23,18 +23,6 @@ settings (``table_name``, ``action_if_failed``, etc.) alongside a flat
         column_name: col1
         expectation: "col1 IS NOT NULL"
         tag: completeness
-
-A simpler format without ``dq_env`` is also supported, using a top-level
-``table_name`` and optional ``defaults``::
-
-    product_id: my_product
-    table_name: db.my_table
-    defaults:
-      action_if_failed: ignore
-    rules:
-      - rule: col1_not_null
-        rule_type: row_dq
-        expectation: "col1 IS NOT NULL"
 """
 
 from typing import Any, Dict, List, Optional
@@ -122,7 +110,7 @@ def flatten_rules_list(
 ) -> List[Dict[str, Any]]:
     """Convert a rules-list definition into a flat list of row dicts.
 
-    Expected structure (dq_env -- recommended)::
+    Expected structure::
 
         product_id: ...
         dq_env:
@@ -139,20 +127,9 @@ def flatten_rules_list(
             rule_type: row_dq
             expectation: ...
 
-    When ``dq_env`` is present the *env* parameter selects which
-    environment block supplies the ``table_name`` and default values.
-    Environment lookup is case-insensitive (``DEV``, ``dev``, ``Dev``
-    all match).
-
-    A simpler structure without ``dq_env`` is also supported::
-
-        product_id: ...
-        table_name: ...
-        defaults:
-          action_if_failed: ignore
-        rules:
-          - rule: ...
-            expectation: ...
+    The *env* parameter selects which environment block supplies the
+    ``table_name`` and default values. Environment lookup is
+    case-insensitive (``DEV``, ``dev``, ``Dev`` all match).
 
     Returns:
         List of dicts, each representing one rule row.
@@ -216,10 +193,10 @@ def flatten_rules_list(
             row["table_name"] = table_name
 
         rule_type = row.get("rule_type", "")
-        if rule_type and rule_type not in VALID_RULE_TYPES:
+        if rule_type not in VALID_RULE_TYPES:
             raise SparkExpectationsUserInputOrConfigInvalidException(
-                f"Invalid rule_type '{rule_type}' for rule '{row.get('rule')}'. "
-                f"Must be one of {sorted(VALID_RULE_TYPES)}."
+                f"{'Missing' if not rule_type else 'Invalid'} rule_type '{rule_type}' "
+                f"for rule '{row.get('rule')}'. Must be one of {sorted(VALID_RULE_TYPES)}."
             )
 
         rows.append(_normalise_row(row))

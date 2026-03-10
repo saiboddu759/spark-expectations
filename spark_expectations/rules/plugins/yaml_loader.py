@@ -53,11 +53,8 @@ class SparkExpectationsYamlRuleLoaderImpl:
         options: Dict[str, str],
         spark: Optional[SparkSession] = None,
     ) -> Optional[DataFrame]:
-        if format == "yaml":
-            pass
-        elif format == "auto" and os.path.splitext(path)[1].lower() in YAML_EXTENSIONS:
-            pass
-        else:
+        is_yaml = format == "yaml" or (format == "auto" and os.path.splitext(path)[1].lower() in YAML_EXTENSIONS)
+        if not is_yaml:
             return None
 
         if spark is None:

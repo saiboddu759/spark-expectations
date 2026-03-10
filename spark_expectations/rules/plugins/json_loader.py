@@ -52,11 +52,8 @@ class SparkExpectationsJsonRuleLoaderImpl:
         options: Dict[str, str],
         spark: Optional[SparkSession] = None,
     ) -> Optional[DataFrame]:
-        if format == "json":
-            pass
-        elif format == "auto" and os.path.splitext(path)[1].lower() in JSON_EXTENSIONS:
-            pass
-        else:
+        is_json = format == "json" or (format == "auto" and os.path.splitext(path)[1].lower() in JSON_EXTENSIONS)
+        if not is_json:
             return None
 
         if spark is None:
